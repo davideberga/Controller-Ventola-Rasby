@@ -13,9 +13,9 @@ config = configparser.ConfigParser()
 config.read('server.ini')
 
 # Porta d'ascolto
-PORT = config['general']['port']
+PORT = int(config['general']['port'])
 # N. pin GPIO
-PIN = config['general']['pin']
+PIN = int(config['general']['pin'])
 
 # Azioni che il server può eseguire
 ACTIONS = {
@@ -26,8 +26,8 @@ ACTIONS = {
 }
 
 # Variabili per il salvataggio dell'orario di accensione/spegnimento output
-start = datetime.fromtimestamp(config['general']['start'])
-stop = datetime.fromtimestamp(config['general']['stop'])
+start = datetime.fromtimestamp(int(config['general']['start']))
+stop = datetime.fromtimestamp(int(config['general']['stop']))
 
 def initGPIO():
     GPIO.setmode(GPIO.BCM)
@@ -128,7 +128,7 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
         return "ERROR"
     
 def run():
-    ServerSays.simpleMessage('Start server on port ' + PORT + '...')
+    ServerSays.simpleMessage('Start server on port ' + str(PORT) + '...')
     server_address = ('', PORT)
     httpd = HTTPServer(server_address, testHTTPServer_RequestHandler)
     ServerSays.simpleMessage('Server is running. Please press CTRL+C to stop safely the process.')
