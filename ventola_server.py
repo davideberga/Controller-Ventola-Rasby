@@ -2,6 +2,8 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from RPi import GPIO
 from urllib.parse import urlparse, parse_qs
+import urllib
+import json 
 from datetime import time, datetime
 import configparser
 
@@ -46,7 +48,7 @@ class ServerSays():
     
     @staticmethod
     def _colora(text: str, color: str) -> str:
-        return ServerSays._colors[color] + text + ServerSays._colors["endc"]
+        return ServerSays._colori[color] + text + ServerSays._colori["endc"]
     
     @staticmethod
     def simpleMessage(text: str, args: str = "") -> None:
@@ -72,7 +74,7 @@ class ServerSays():
         args : str, optional
             Argomenti per format
         """
-        print("\n[SERVER] : " + ServerSays._colora("[x] " + text.format(args), "red"))   
+        print("\n[SERVER] : " + ServerSays._colora(text.format(args), "red"))   
     
 
 class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
@@ -84,22 +86,26 @@ class testHTTPServer_RequestHandler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header('Content-type', 'text/plain')
         self.end_headers()
-        message = self.apply(self.getAction(self.path))
+        actionGet, startGet, stopGet = self.parseQS(self.path)
+        message = self.apply(actionGet, startGet, stopGet)
         self.wfile.write(bytes(message, "utf8"))
-        ServerSays.simpleMessage(self.address_string + ' served, reponse: ' + message)
+        ServerSays.simpleMessage(self.address_string() + ' served, reponse: ' + message)
         return
 
-    def parseQS(self, path: str) -> str:
+    def parseQS(self, path: str):
         
         """ Ritorna il valore della prima chiave nella query string
         
         Parameters
         ----------
         path : str
-             Percorso richiesto dal client """        
+             Percorso richiesto dal client """
         
-        queryString = urllib.parse.parse_qs(urlparse(path)[4])
-        return queryString['action'], queryString['start'], queryString['stop']
+        qs = urllib.parse.parse_qs(urlparse(path)[4])   
+        action = qs['action'][0] if 'action' in qs else None
+        strt = qs['start'][0] if 'start' in qs else None
+        stp = qs['stop'][0] if 'stop' in qs else None
+        return action, strt, stp
 
     def apply(self, action: str, start: str, stop: str) -> None:
         
